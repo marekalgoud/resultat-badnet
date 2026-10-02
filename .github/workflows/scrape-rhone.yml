@@ -1,0 +1,54 @@
+name: Scraping des tournois du Rhône
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Scraper les tournois du Rhône
+        id: scrape
+        run: npm run scrape:rhone
+
+      - name: Notifier Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SCRAPE_RESULT: ${{ steps.scrape.outcome || 'not_run' }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "Le secret DISCORD_WEBHOOK_URL n'est pas configuré."
+            exit 1
+          fi
+
+          jq -n \
+            --arg result "$SCRAPE_RESULT" \
+            --arg url "$WORKFLOW_URL" \
+            '{content: ("Scraping Rhône : " + $result + "\n" + $url)}' \
+            | curl --fail --silent --show-error \
+                -H 'Content-Type: application/json' \
+                --data-binary @- \
+                "$DISCORD_WEBHOOK_URL"

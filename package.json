@@ -1,0 +1,24 @@
+{
+  "name": "resultat-badnet",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/marekalgoud/resultat-badnet#readme",
+  "bugs": {
+    "url": "https://github.com/marekalgoud/resultat-badnet/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marekalgoud/resultat-badnet.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "scrape": "node scrapping-badnet.js",
+    "scrape:rhone": "node scrape-tournois-rhone.js"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0"
+  }
+}
